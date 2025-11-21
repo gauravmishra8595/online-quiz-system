@@ -22,3 +22,7 @@ export const getQuestions = async () => {
   const res = await fetch(`${API_URL}/questions`);
   return res.json();
 };
+
+const API = axios.create({
+  baseURL: "https://online-quiz-system-bu31.onrender.com/api",
+});
