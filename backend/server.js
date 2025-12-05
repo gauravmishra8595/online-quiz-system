@@ -5,21 +5,26 @@ const connectDB = require('./config/db');
 const app = express();
 
 /* =========================================================
-   CORS FIX FOR RENDER + VERCEL
+   CORS SUPPORT FOR RENDER + VERCEL (FULLY WORKING)
    ========================================================= */
+
 const allowedOrigins = [
-  "https://online-quiz-system-7tsj.vercel.app",  // replace with your real Vercel URL
+  "https://online-quiz-system-7tsj.vercel.app", // your real Vercel URL
   "http://localhost:5173"
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (allowedOrigins.includes(origin)) {
+  // Allow exact matches or any *.vercel.app domain
+  if (
+    allowedOrigins.includes(origin) ||
+    /\.vercel\.app$/.test(origin)
+  ) {
     res.header("Access-Control-Allow-Origin", origin);
   }
 
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -35,7 +40,9 @@ app.use((req, res, next) => {
    ========================================================= */
 app.use(express.json());
 
-/* Logging for debugging */
+/* =========================================================
+   REQUEST LOGGING
+   ========================================================= */
 app.use((req, res, next) => {
   console.log("Incoming:", req.method, req.url, req.body);
   next();
@@ -46,6 +53,7 @@ app.use((req, res, next) => {
    ========================================================= */
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
+
 connectDB(MONGO_URI);
 
 /* =========================================================
@@ -56,13 +64,85 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/results', require('./routes/results'));
 
-/* TEST ROUTE */
-app.get('/', (req, res) => res.send('Quiz API running'));
+/* =========================================================
+   TEST ROUTE
+   ========================================================= */
+app.get('/', (req, res) => {
+  res.send("Quiz API running");
+});
 
 /* =========================================================
    START SERVER
    ========================================================= */
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// require('dotenv').config();
+// const express = require('express');
+// const connectDB = require('./config/db');
+
+// const app = express();
+
+// /* =========================================================
+//    CORS FIX FOR RENDER + VERCEL
+//    ========================================================= */
+// const allowedOrigins = [
+//   "https://online-quiz-system-7tsj.vercel.app",  // replace with your real Vercel URL
+//   "http://localhost:5173"
+// ];
+
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
+
+//   if (allowedOrigins.includes(origin)) {
+//     res.header("Access-Control-Allow-Origin", origin);
+//   }
+
+//   res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.header("Access-Control-Allow-Credentials", "true");
+
+//   if (req.method === "OPTIONS") {
+//     return res.sendStatus(200);
+//   }
+
+//   next();
+// });
+
+// /* =========================================================
+//    BODY PARSER
+//    ========================================================= */
+// app.use(express.json());
+
+// /* Logging for debugging */
+// app.use((req, res, next) => {
+//   console.log("Incoming:", req.method, req.url, req.body);
+//   next();
+// });
+
+// /* =========================================================
+//    DATABASE CONNECTION
+//    ========================================================= */
+// const PORT = process.env.PORT || 5000;
+// const MONGO_URI = process.env.MONGO_URI;
+// connectDB(MONGO_URI);
+
+// /* =========================================================
+//    ROUTES
+//    ========================================================= */
+// app.use('/api/auth', require('./routes/auth'));
+// app.use('/api/categories', require('./routes/categories'));
+// app.use('/api/questions', require('./routes/questions'));
+// app.use('/api/results', require('./routes/results'));
+
+// /* TEST ROUTE */
+// app.get('/', (req, res) => res.send('Quiz API running'));
+
+// /* =========================================================
+//    START SERVER
+//    ========================================================= */
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
 
