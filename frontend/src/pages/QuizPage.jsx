@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import API from "../api/api";
 
 const QuizPage = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
+
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(0);
@@ -17,7 +18,7 @@ const QuizPage = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/questions/${categoryId}`);
+        const res = await API.get(`/questions/${categoryId}`);
         setQuestions(res.data);
       } catch (err) {
         console.error("Error fetching questions:", err);
@@ -26,12 +27,14 @@ const QuizPage = () => {
         setLoading(false);
       }
     };
+
     fetchQuestions();
   }, [categoryId]);
 
   // Timer logic
   useEffect(() => {
     if (!started) return;
+
     const countdown = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
@@ -41,11 +44,15 @@ const QuizPage = () => {
         return t - 1;
       });
     }, 1000);
+
     return () => clearInterval(countdown);
   }, [current, started]);
 
   const handleNext = () => {
-    if (selected === questions[current]?.correctIndex) setScore((s) => s + 1);
+    if (selected === questions[current]?.correctIndex) {
+      setScore((s) => s + 1);
+    }
+
     if (current < questions.length - 1) {
       setCurrent((c) => c + 1);
       setSelected(null);
@@ -128,6 +135,7 @@ const QuizPage = () => {
           <h2 className="text-lg font-semibold text-indigo-600 mb-4">
             Question {current + 1} / {questions.length}
           </h2>
+
           <p className="text-xl mb-4">{q.text}</p>
 
           <div className="space-y-3">
@@ -147,9 +155,7 @@ const QuizPage = () => {
           </div>
 
           <div className="mt-6 flex items-center justify-between">
-            <span className="text-indigo-600 font-medium">
-              ⏳ {timer}s
-            </span>
+            <span className="text-indigo-600 font-medium">⏳ {timer}s</span>
             <button
               onClick={handleNext}
               className="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition"
@@ -164,5 +170,3 @@ const QuizPage = () => {
 };
 
 export default QuizPage;
-
-

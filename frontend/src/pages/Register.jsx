@@ -1,9 +1,14 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API from "../api/api";
 
 const Register = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -12,10 +17,10 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", form, {
-        headers: { "Content-Type": "application/json" },
-      });
+      await API.post("/auth/register", form);
+
       alert("Registered successfully!");
       navigate("/login");
     } catch (err) {
@@ -38,22 +43,27 @@ const Register = () => {
           placeholder="Full Name"
           value={form.name}
           onChange={handleChange}
+          required
           className="w-full p-3 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
+
         <input
           type="email"
           name="email"
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
+          required
           className="w-full p-3 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
+
         <input
           type="password"
           name="password"
           placeholder="Password"
           value={form.password}
           onChange={handleChange}
+          required
           className="w-full p-3 mb-5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
@@ -76,4 +86,6 @@ const Register = () => {
 };
 
 export default Register;
+
+
 

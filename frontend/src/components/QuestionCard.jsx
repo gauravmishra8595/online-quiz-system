@@ -19,3 +19,4 @@ export default function QuestionCard({ question, onSelect, selectedIndex }) {
     </div>
   );
 }
+

@@ -1,11 +1,19 @@
+// Load environment variables FIRST
+require('dotenv').config();
+
 const mongoose = require('mongoose');
-const connectDB = require('../config/db');
 const Category = require('../models/Category');
 const Question = require('../models/Question');
 
-require('dotenv').config();
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/online_quiz_db';
+// Read Mongo URI
+const MONGO_URI = process.env.MONGO_URI;
 
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI is missing in .env');
+  process.exit(1);
+}
+
+// Categories data
 const categories = [
   { title: 'Data Structures', slug: 'data-structures', color: 'bg-indigo-500' },
   { title: 'Algorithms', slug: 'algorithms', color: 'bg-rose-500' },
@@ -14,7 +22,7 @@ const categories = [
   { title: 'Computer Networks', slug: 'computer-networks', color: 'bg-sky-500' }
 ];
 
-
+// Questions data
 const qs = {
   'data-structures': [
     { text: 'Which data structure uses FIFO?', options: ['Stack', 'Queue', 'Tree', 'Graph'], correctIndex: 1 },
@@ -28,7 +36,7 @@ const qs = {
     { text: 'Which is not linear DS?', options: ['Array', 'LinkedList', 'Tree', 'Stack'], correctIndex: 2 },
     { text: 'Which DS is used in recursion?', options: ['Queue', 'Stack', 'Tree', 'Graph'], correctIndex: 1 }
   ],
-  'algorithms': [
+  algorithms: [
     { text: 'Big O of binary search?', options: ['O(n)', 'O(log n)', 'O(n log n)', 'O(1)'], correctIndex: 1 },
     { text: 'Which is divide and conquer?', options: ['MergeSort', 'BubbleSort', 'InsertionSort', 'LinearSearch'], correctIndex: 0 },
     { text: 'Dijkstra finds?', options: ['MST', 'SSSP', 'All pairs shortest', 'Topological order'], correctIndex: 1 },
@@ -52,7 +60,7 @@ const qs = {
     { text: 'Interrupt handling is', options: ['Synchronous', 'Asynchronous', 'Neither', 'Both'], correctIndex: 1 },
     { text: 'Spooling stands for?', options: ['Simultaneous peripheral operations on-line', 'Single process on line', 'None', 'Both'], correctIndex: 0 }
   ],
-  'dbms': [
+  dbms: [
     { text: 'ACID stands for?', options: ['Atomicity, Consistency, Isolation, Durability', 'Auto, Consistent, Isolated, Durable', 'None', 'All'], correctIndex: 0 },
     { text: 'Normal form to remove transitive dependency?', options: ['1NF', '2NF', '3NF', 'BCNF'], correctIndex: 2 },
     { text: 'Primary key must be?', options: ['Unique', 'Null', 'Duplicate', 'None'], correctIndex: 0 },
@@ -78,32 +86,36 @@ const qs = {
   ]
 };
 
+// Seeding function
 (async () => {
   try {
+    console.log('🌱 Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI);
-    console.log('Connected to Mongo for seeding');
+
+    console.log('🧹 Clearing old data...');
     await Category.deleteMany({});
     await Question.deleteMany({});
 
-    for (const cat of categories) {
-      const c = new Category(cat);
-      await c.save();
-      const list = qs[cat.slug] || [];
-      for (const q of list) {
-        const qu = new Question({
-          category: c._id,
-          text: q.text,
-          options: q.options,
-          correctIndex: q.correctIndex
-        });
-        await qu.save();
-      }
+    console.log('📥 Inserting new data...');
+    for (const category of categories) {
+      const savedCategory = await Category.create(category);
+      const questions = qs[category.slug] || [];
+
+      const formattedQuestions = questions.map(q => ({
+        category: savedCategory._id,
+        text: q.text,
+        options: q.options,
+        correctIndex: q.correctIndex
+      }));
+
+      await Question.insertMany(formattedQuestions);
     }
 
-    console.log('Seeding done');
+    console.log('✅ Database seeded successfully!');
     process.exit(0);
   } catch (err) {
-    console.error(err);
+    console.error('❌ Seeding error:', err);
     process.exit(1);
   }
 })();
+

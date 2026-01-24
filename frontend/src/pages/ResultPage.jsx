@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
+import API from "../api/api";
 import {
   PieChart,
   Pie,
@@ -16,7 +16,7 @@ const ResultPage = () => {
   const navigate = useNavigate();
   const { score = 0, total = 0 } = location.state || {};
 
-  const percentage = Math.round((score / total) * 100);
+  const percentage = total ? Math.round((score / total) * 100) : 0;
   const wrong = total - score;
 
   const data = [
@@ -24,7 +24,7 @@ const ResultPage = () => {
     { name: "Wrong Answers", value: wrong },
   ];
 
-  const COLORS = ["#10B981", "#EF4444"]; // green for correct, red for wrong
+  const COLORS = ["#10B981", "#EF4444"]; // green, red
 
   let feedback = "";
   if (percentage === 100) feedback = "Perfect score! 🌟";
@@ -32,21 +32,18 @@ const ResultPage = () => {
   else if (percentage >= 60) feedback = "Good work! Keep improving 🚀";
   else feedback = "Don’t worry — practice makes perfect 💫";
 
-  // Save result in backend
-  const saveResult = async () => {
-    try {
-      await axios.post("http://localhost:5000/api/results", {
-        score,
-        total,
-      });
-    } catch (err) {
-      console.error("Error saving result:", err);
-    }
-  };
+  // Save result to backend
+  useEffect(() => {
+    const saveResult = async () => {
+      try {
+        await API.post("/results", { score, total });
+      } catch (err) {
+        console.error("Error saving result:", err);
+      }
+    };
 
-  React.useEffect(() => {
-    saveResult();
-  }, []);
+    if (total > 0) saveResult();
+  }, [score, total]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-indigo-400 to-blue-600 text-white px-4">
@@ -66,10 +63,13 @@ const ResultPage = () => {
           <span className="font-semibold text-indigo-600">{total}</span>
         </p>
 
-        <p className="text-2xl font-bold text-blue-600 mb-4">{percentage}%</p>
+        <p className="text-2xl font-bold text-blue-600 mb-4">
+          {percentage}%
+        </p>
+
         <p className="text-gray-700 mb-6">{feedback}</p>
 
-        {/* Pie Chart Section */}
+        {/* Pie Chart */}
         <div className="w-full h-64 flex justify-center mb-6">
           <ResponsiveContainer width="80%" height="100%">
             <PieChart>
@@ -79,13 +79,12 @@ const ResultPage = () => {
                 cy="50%"
                 labelLine={false}
                 outerRadius={90}
-                fill="#8884d8"
                 dataKey="value"
                 label={({ name, percent }) =>
                   `${name} ${(percent * 100).toFixed(0)}%`
                 }
               >
-                {data.map((entry, index) => (
+                {data.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
@@ -105,6 +104,7 @@ const ResultPage = () => {
           >
             Restart Quiz
           </button>
+
           <button
             onClick={() => navigate("/login")}
             className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition"
@@ -118,3 +118,4 @@ const ResultPage = () => {
 };
 
 export default ResultPage;
+

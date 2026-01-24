@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API from "../api/api";
 
 const CategorySelect = () => {
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/categories")
-      .then((res) => setCategories(res.data))
-      .catch((err) => console.error("Error fetching categories:", err));
+    const fetchCategories = async () => {
+      try {
+        const res = await API.get("/categories");
+        setCategories(res.data);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const handleSelect = (id) => {
@@ -19,7 +25,10 @@ const CategorySelect = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 to-indigo-300 p-4">
-      <h1 className="text-3xl font-bold text-indigo-700 mb-6">Select a Category</h1>
+      <h1 className="text-3xl font-bold text-indigo-700 mb-6">
+        Select a Category
+      </h1>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {categories.map((cat) => (
           <div
@@ -36,3 +45,4 @@ const CategorySelect = () => {
 };
 
 export default CategorySelect;
+
