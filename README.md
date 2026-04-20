@@ -47,7 +47,7 @@ Open the app at http://localhost:5173
 👩‍💻 Developer
 
 Gaurav Mishra
-Minor Project – College Submission 2025
+
 
 
 
